@@ -41,9 +41,41 @@ public class KNN {
             for (int i = 0 ; i < k ; i++) {
                 kNeighbourPoints.add(distanceFromPointToTrainData.get(i));
             }
-            yPrediction.add(getPredictedClass(kNeighbourPoints));
+            if (this.votingMethod.equals(MAJORITY_VOTING)) {
+                yPrediction.add(majorityVoting(kNeighbourPoints));
+            } else {
+                yPrediction.add(weightedVoting(kNeighbourPoints));
+            }
         }
         return yPrediction;
+    }
+
+    private Integer weightedVoting(List<List<Double>> kNeighbourPoints) {
+        for (List<Double> kNeighbourPoint : kNeighbourPoints) {
+            int distanceIndex = 0;
+            double weight = 1.0 / kNeighbourPoint.get(distanceIndex);
+            kNeighbourPoint.set(distanceIndex, weight);
+        }
+        Map<Double, Double> weightedSumMap = new HashMap<>();
+        for (List<Double> kNeighbourPoint : kNeighbourPoints) {
+            int weightIndex = 0;
+            int classIndex = 1;
+            if (weightedSumMap.containsKey(kNeighbourPoint.get(classIndex))) {
+                double newValue = weightedSumMap.get(kNeighbourPoint.get(classIndex)) + kNeighbourPoint.get(weightIndex);
+                weightedSumMap.put(kNeighbourPoint.get(classIndex), newValue);
+            } else {
+                weightedSumMap.put(kNeighbourPoint.get(classIndex), kNeighbourPoint.get(weightIndex));
+            }
+        }
+        double maxWeight = Double.MIN_VALUE;
+        Double mostCommonClass = null;
+        for (Map.Entry<Double, Double> entry : weightedSumMap.entrySet()) {
+            if (entry.getValue() > maxWeight) {
+                mostCommonClass = entry.getKey();
+                maxWeight = entry.getValue();
+            }
+        }
+        return mostCommonClass.intValue();
     }
 
     private void stringToNumber(ArrayList<ArrayList<String>> xTrain, ArrayList<ArrayList<String>> xTest) {
@@ -69,7 +101,7 @@ public class KNN {
         }
     }
 
-    private Integer getPredictedClass(List<List<Double>> kNeighbourPoints) {
+    private Integer majorityVoting(List<List<Double>> kNeighbourPoints) {
         Map<Double, Integer> classCounts = new HashMap<>();
         for (List<Double> trainingPoint : kNeighbourPoints) {
             int classIndex = 1;

@@ -15,7 +15,7 @@ public class Main {
         testTrainSplit(x, y, testSplit, xTrain, xTest, yTrain, yTest);
 
         ArrayList<String> corpusDescription = DescribeCorpus.describeDataset(x);
-        KNN knnClassifier = new KNN(5, KNN.MAJORITY_VOTING, KNN.AUTO_DISTANCE, corpusDescription);
+        KNN knnClassifier = new KNN(5, KNN.WEIGHTED_VOTING, KNN.AUTO_DISTANCE, corpusDescription);
         knnClassifier.fit(xTrain, yTrain);
         ArrayList<Integer> yPrediction = knnClassifier.predict(xTest);
 
@@ -49,7 +49,7 @@ public class Main {
 
     private static void load_data(ArrayList<ArrayList<String>> x, ArrayList<Integer> y, Set<String> classesSet) {
         try {
-            Scanner scanner = new Scanner(new File("Coropra/Categorical.csv"));
+            Scanner scanner = new Scanner(new File("Coropra/ten_features.csv"));
             scanner.nextLine();
             while (scanner.hasNextLine()) {
                 String[] line = scanner.nextLine().split(",");
