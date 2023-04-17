@@ -38,7 +38,28 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/Coropra/digits.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/Coropra/five_classes.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/Coropra/ten_features.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/Coropra/two_classes.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />

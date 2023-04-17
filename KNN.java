@@ -5,8 +5,12 @@ public class KNN {
     public static final String MAJORITY_VOTING = "MAJORITY";
     public static final String EUCLIDEAN = "EUCLIDEAN";
     public static final String MANHATTAN = "MANHATTAN";
+    public static final String CHEBYSHEV = "CHEBYSHEV";
+    public static final String MINKOWSKI = "MINKOWSKI";
+    public static final String CANBERRA = "CANBERRA";
     public static final String AUTO_DISTANCE = "AUTO";
     private int k;
+    private double p;
     private String votingMethod;
     private String defaultDistance;
     private ArrayList<ArrayList<String>> xTrain;
@@ -15,16 +19,22 @@ public class KNN {
 
     public KNN(int k, String votingMethod, String defaultDistance, ArrayList<String> corpusDescription) {
         this.k = k;
+        this.p = 2;
         this.defaultDistance = defaultDistance;
         this.votingMethod = votingMethod;
         this.corpusDescription = corpusDescription;
     }
-
+    public KNN(int k, double p, String votingMethod, String defaultDistance, ArrayList<String> corpusDescription) {
+        this.k = k;
+        this.p = p;
+        this.votingMethod = votingMethod;
+        this.defaultDistance = defaultDistance;
+        this.corpusDescription = corpusDescription;
+    }
     public void fit(ArrayList<ArrayList<String>> xTrain, ArrayList<Integer> yTrain) {
         this.xTrain = xTrain;
         this.yTrain = yTrain;
     }
-
     public ArrayList<Integer> predict(ArrayList<ArrayList<String>> xTest) {
         ArrayList<Integer> yPrediction = new ArrayList<>();
         ArrayList<ArrayList<String>> xTrainCopy = new ArrayList<>(this.xTrain);
@@ -49,7 +59,6 @@ public class KNN {
         }
         return yPrediction;
     }
-
     private Integer weightedVoting(List<List<Double>> kNeighbourPoints) {
         for (List<Double> kNeighbourPoint : kNeighbourPoints) {
             int distanceIndex = 0;
@@ -77,7 +86,6 @@ public class KNN {
         }
         return mostCommonClass.intValue();
     }
-
     private void stringToNumber(ArrayList<ArrayList<String>> xTrain, ArrayList<ArrayList<String>> xTest) {
         Set<String> columnSet = new HashSet<>();
         ArrayList<ArrayList<String>> xJoined = new ArrayList<>();
@@ -100,7 +108,6 @@ public class KNN {
             }
         }
     }
-
     private Integer majorityVoting(List<List<Double>> kNeighbourPoints) {
         Map<Double, Integer> classCounts = new HashMap<>();
         for (List<Double> trainingPoint : kNeighbourPoints) {
@@ -122,7 +129,6 @@ public class KNN {
         }
         return mostCommonClass.intValue();
     }
-
     private List<List<List<Double>>> sortDistances(List<List<List<Double>>> distanceLabelList) {
         List<List<List<Double>>> sortedDistanceLabelList = new ArrayList<>();
         for (List<List<Double>> distances : distanceLabelList) {
@@ -140,7 +146,6 @@ public class KNN {
         }
         return sortedDistanceLabelList;
     }
-
     private List<List<List<Double>>> computeDistances(ArrayList<ArrayList<String>> xTrain, ArrayList<ArrayList<String>> xTest) {
         List<List<List<Double>>> distancesList = new ArrayList<>();
         List<List<Double>> distanceLabelList;
@@ -149,36 +154,41 @@ public class KNN {
             distanceLabelList = new ArrayList<>();
             for (int trainRowIndex = 0 ; trainRowIndex < xTrain.size() ; trainRowIndex++) {
                 List<Double> distanceLabelPair = new ArrayList<>();
-                if (defaultDistance.equals(EUCLIDEAN)) {
-                    distanceLabelPair.add(euclideanDistance(xTrain.get(trainRowIndex), xTest.get(testRowIndex)));
-                    distanceLabelPair.add(Double.valueOf(this.yTrain.get(trainRowIndex)));
-                } else if (defaultDistance.equals(MANHATTAN)) {
-                    distanceLabelPair.add(manhattanDistance(xTrain.get(trainRowIndex), xTest.get(testRowIndex)));
-                    distanceLabelPair.add(Double.valueOf(this.yTrain.get(trainRowIndex)));
-                } else {
-                    double distance = 0;
-                    for (int columnIndex = 0 ; columnIndex < this.corpusDescription.size() ; columnIndex++) {
-                        ArrayList<String> xTrainCell = new ArrayList<>();
-                        ArrayList<String> xTestCell = new ArrayList<>();
-                        xTrainCell.add(xTrain.get(trainRowIndex).get(columnIndex));
-                        xTestCell.add(xTest.get(testRowIndex).get(columnIndex));
+                switch (defaultDistance) {
+                    case EUCLIDEAN ->
+                            distanceLabelPair.add(euclideanDistance(xTrain.get(trainRowIndex), xTest.get(testRowIndex)));
+                    case MANHATTAN ->
+                            distanceLabelPair.add(manhattanDistance(xTrain.get(trainRowIndex), xTest.get(testRowIndex)));
+                    case CHEBYSHEV ->
+                            distanceLabelPair.add(chebyshevDistance(xTrain.get(trainRowIndex), xTest.get(testRowIndex)));
+                    case MINKOWSKI ->
+                            distanceLabelPair.add(minkowskiDistance(xTrain.get(trainRowIndex), xTest.get(testRowIndex)));
+                    case CANBERRA ->
+                            distanceLabelPair.add(canberraDistance(xTrain.get(trainRowIndex), xTest.get(testRowIndex)));
+                    default -> {
+                        double distance = 0;
+                        for (int columnIndex = 0; columnIndex < this.corpusDescription.size(); columnIndex++) {
+                            ArrayList<String> xTrainCell = new ArrayList<>();
+                            ArrayList<String> xTestCell = new ArrayList<>();
+                            xTrainCell.add(xTrain.get(trainRowIndex).get(columnIndex));
+                            xTestCell.add(xTest.get(testRowIndex).get(columnIndex));
 
-                        if (corpusDescription.get(columnIndex).equals(DescribeCorpus.CONTINUOUS)) {
-                            distance += euclideanDistance(xTrainCell, xTestCell);
-                        } else {
-                            distance += manhattanDistance(xTrainCell, xTestCell);
+                            if (corpusDescription.get(columnIndex).equals(DescribeCorpus.CONTINUOUS)) {
+                                distance += euclideanDistance(xTrainCell, xTestCell);
+                            } else {
+                                distance += manhattanDistance(xTrainCell, xTestCell);
+                            }
                         }
+                        distanceLabelPair.add(Math.round(distance * 100.0) / 100.0);
                     }
-                    distanceLabelPair.add(Math.round(distance * 100.0) / 100.0);
-                    distanceLabelPair.add(Double.valueOf(this.yTrain.get(trainRowIndex)));
                 }
+                distanceLabelPair.add(Double.valueOf(this.yTrain.get(trainRowIndex)));
                 distanceLabelList.add(distanceLabelPair);
             }
             distancesList.add(distanceLabelList);
         }
         return distancesList;
     }
-
     private void normalize(ArrayList<ArrayList<String>> xTrain, ArrayList<ArrayList<String>> xTest) {
         for (int j = 0 ; j < corpusDescription.size() ; j++) {
             if (corpusDescription.get(j).equals(DescribeCorpus.CATEGORICAL)) continue;
@@ -209,7 +219,6 @@ public class KNN {
 
         }
     }
-
     private double getMinValue(int j, ArrayList<ArrayList<String>> xJoined) {
         double min = Double.MAX_VALUE;
         for (ArrayList<String> row : xJoined) {
@@ -224,7 +233,6 @@ public class KNN {
         }
         return min;
     }
-
     private double getMaxValue(int j, ArrayList<ArrayList<String>> xJoined) {
         double max = Double.MIN_VALUE;
         for (ArrayList<String> row : xJoined) {
@@ -239,7 +247,45 @@ public class KNN {
         }
         return max;
     }
-
+    private double canberraDistance(ArrayList<String> xTrainRow, ArrayList<String> xTestRow) {
+        double distance = 0;
+        for (int columnIndex = 0 ; columnIndex < xTrainRow.size() ; columnIndex++) {
+            try {
+                double numerator = Math.abs(Double.parseDouble(xTestRow.get(columnIndex)) - Double.parseDouble(xTrainRow.get(columnIndex)));
+                double denominator = Math.abs(Double.parseDouble(xTestRow.get(columnIndex))) + Math.abs(Double.parseDouble(xTrainRow.get(columnIndex)));
+                distance += numerator / denominator;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return Math.pow(distance, 1.0 / this.p);
+    }
+    private double minkowskiDistance(ArrayList<String> xTrainRow, ArrayList<String> xTestRow) {
+        double distance = 0;
+        for (int columnIndex = 0 ; columnIndex < xTrainRow.size() ; columnIndex++) {
+            try {
+                distance += Math.pow(Math.abs(Double.parseDouble(xTestRow.get(columnIndex)) - Double.parseDouble(xTrainRow.get(columnIndex))), this.p);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return Math.pow(distance, 1.0 / this.p);
+    }
+    private double chebyshevDistance(ArrayList<String> xTrainRow, ArrayList<String> xTestRow) {
+        double maxDifference = Double.MIN_VALUE;
+        for (int columnIndex = 0 ; columnIndex < xTrainRow.size() ; columnIndex++) {
+            double distance = 0;
+            try {
+                distance = Math.abs(Double.parseDouble(xTestRow.get(columnIndex)) - Double.parseDouble(xTrainRow.get(columnIndex)));
+                if (maxDifference < distance) {
+                    maxDifference = distance;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return maxDifference;
+    }
     private double euclideanDistance(ArrayList<String> xTrainRow, ArrayList<String> xTestRow) {
         double distance = 0;
         for (int columnIndex = 0 ; columnIndex < xTrainRow.size() ; columnIndex++) {
