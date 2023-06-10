@@ -10,10 +10,10 @@ Scalable: The implementation is slow when working with large datasets.
 # Usage
 To use this KNN implementation in your Java project, follow these steps:
 
-Clone the repository or download the source code.
-Import the project into your Java IDE.
-Create an instance of the KNN classifier, specifying the desired parameters.
-Load your training dataset into the classifier using the fit() method.
-Provide a set of input samples for classification using the predict() method.
-Retrieve the predicted labels for the input samples.
-Evaluate the performance of the classifier using evaluation metrics like accuracy or precision (these metrics should be programmed manually).
+1. Clone the repository or download the source code.
+2. Import the project into your Java IDE.
+3. Create an instance of the KNN classifier, specifying the desired parameters.
+4. Load your training dataset into the classifier using the fit() method.
+5. Provide a set of input samples for classification using the predict() method.
+6. Retrieve the predicted labels for the input samples.
+7. Evaluate the performance of the classifier using evaluation metrics like accuracy or precision (these metrics should be programmed manually).

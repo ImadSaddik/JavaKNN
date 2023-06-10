@@ -297,7 +297,6 @@ public class KNN {
         }
         return Math.sqrt(distance);
     }
-
     private double manhattanDistance(ArrayList<String> xTrainRow, ArrayList<String> xTestRow) {
         double distance = 0;
         for (int columnIndex = 0 ; columnIndex < xTrainRow.size() ; columnIndex++) {
